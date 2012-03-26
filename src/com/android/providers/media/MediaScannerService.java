@@ -120,6 +120,7 @@ public class MediaScannerService extends Service implements Runnable
         mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
         StorageManager storageManager = (StorageManager)getSystemService(Context.STORAGE_SERVICE);
         mExternalStoragePaths = storageManager.getVolumePaths();
+        mTerminatedByException = false;
 
         // Start up the thread running the service.  Note that we create a
         // separate thread because the service normally runs in the process's
@@ -131,7 +132,6 @@ public class MediaScannerService extends Service implements Runnable
     @Override
     public int onStartCommand(Intent intent, int flags, int startId)
     {
-        mTerminatedByException = false;
         while (mServiceHandler == null) {
             synchronized (this) {
                 try {
@@ -169,6 +169,7 @@ public class MediaScannerService extends Service implements Runnable
                 }
             }
         }
+        Log.d(TAG, "onDestroy, quitting looper");
         mServiceLooper.quit();
     }
 
