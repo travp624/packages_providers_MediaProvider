@@ -54,7 +54,7 @@ public class MediaScannerService extends Service implements Runnable
     private volatile ServiceHandler mServiceHandler;
     private PowerManager.WakeLock mWakeLock;
     private String[] mExternalStoragePaths;
-    private boolean mTerminatedByException;
+    private boolean mScanFinished;
     
     private void openDatabase(String volumeName) {
         try {
@@ -120,7 +120,7 @@ public class MediaScannerService extends Service implements Runnable
         mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
         StorageManager storageManager = (StorageManager)getSystemService(Context.STORAGE_SERVICE);
         mExternalStoragePaths = storageManager.getVolumePaths();
-        mTerminatedByException = false;
+        mScanFinished = false;
 
         // Start up the thread running the service.  Note that we create a
         // separate thread because the service normally runs in the process's
@@ -161,7 +161,7 @@ public class MediaScannerService extends Service implements Runnable
     public void onDestroy()
     {
         // Make sure thread has started before telling it to quit.
-        while (mServiceLooper == null && !mTerminatedByException) {
+        while (mServiceLooper == null && !mScanFinished) {
             synchronized (this) {
                 try {
                     wait(100);
@@ -268,9 +268,8 @@ public class MediaScannerService extends Service implements Runnable
                 }
             } catch (Exception e) {
                 Log.e(TAG, "Exception in handleMessage", e);
-                mTerminatedByException = true;
             }
-
+			mScanFinished = true;
             stopSelf(msg.arg1);
         }
     };
